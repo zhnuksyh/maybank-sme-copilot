@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<!-- 
+    [PROJECT ARCHITECTURE NOTE FOR AI REFACTORING]
+    This HTML file is a high-fidelity prototype for the "Maybank SME Copilot" PWA.
+    Your goal is to refactor this into a production-grade Vite + React application.
+    
+    Tech Stack to use:
+    - Framework: React (Vite)
+    - Styling: Tailwind CSS
+    - Icons: Lucide React (Replace SVG strings below with <IconName />)
+    - Charts: Recharts (Replace Chart.js with Recharts components)
+    - Animation: Framer Motion (for fade-in/slide-up classes)
+    - Routing: React Router DOM or simple state-based routing (for PWA simplicity)
+-->
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Maybank SME Copilot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* [GLOBAL STYLES] Move these to index.css */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .maybank-yellow {
+            background-color: #FFC82C;
+            color: black;
+        }
+
+        .maybank-black {
+            background-color: #1e1e1e;
+            color: white;
+        }
+
+        .text-maybank-yellow {
+            color: #FFC82C;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* [ANIMATIONS] Replace these CSS animations with Framer Motion <motion.div> variants */
+        .fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .slide-up {
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* [ICONS] Use Lucide React components instead of these classes */
+        .icon {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .icon-sm {
+            width: 18px;
+            height: 18px;
+        }
+
+        .icon-lg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: '#FFC82C',
+                        dark: '#121212'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50 text-gray-900 h-screen flex overflow-hidden">
+
+    <!-- 
+        [COMPONENT: Sidebar.jsx]
+        Props: { activeScreen, onNavigate }
+        Visibility: Hidden on mobile (md:hidden), visible on desktop.
+    -->
+    <aside class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 h-full p-6">
+        <!-- Logo Section -->
+        <div class="flex items-center gap-3 mb-10">
+            <div class="w-10 h-10 rounded-full bg-brand flex items-center justify-center font-bold text-lg shadow-sm">M
+            </div>
+            <span class="font-bold text-xl tracking-tight">SME Copilot</span>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="space-y-2 flex-1">
+            <!-- Active State: Add 'bg-gray-50 text-brand' conditionally -->
+            <button onclick="goBack('screen-dashboard')"
+                class="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 text-brand rounded-xl font-medium transition-colors">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Dashboard
+            </button>
+            <button
+                class="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium transition-colors">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                Files
+            </button>
+            <button
+                class="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium transition-colors">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                Statistics
+            </button>
+            <button
+                class="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium transition-colors">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Profile
+            </button>
+        </nav>
+
+        <!-- User Profile Stub -->
+        <div class="mt-auto pt-6 border-t">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
+                    <svg class="icon w-full h-full p-2 text-gray-400" viewBox="0 0 24 24">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <div>
+                    <div class="text-sm font-bold">Zahin Ukasyah</div>
+                    <div class="text-xs text-gray-500">Relationship Manager</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <!-- [LAYOUT] This is the MainLayout.jsx wrapper -->
+    <div class="flex-1 flex flex-col h-full relative overflow-hidden">
+
+        <!-- 
+            [COMPONENT: TopBar.jsx]
+            Props: { title, notificationCount }
+            Logic: Changes title based on active screen.
+        -->
+        <header
+            class="bg-white/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-gray-100 md:bg-white">
+            <div class="md:hidden flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center font-bold text-xs shadow-sm">
+                    M</div>
+                <span class="font-bold text-lg tracking-tight">SME Copilot</span>
+            </div>
+
+            <div class="hidden md:block">
+                <h2 id="page-title" class="font-bold text-xl text-dark">Dashboard</h2>
+            </div>
+
+            <div
+                class="w-10 h-10 rounded-full bg-gray-50 border flex items-center justify-center relative hover:bg-gray-100 cursor-pointer transition">
+                <!-- Icon: Bell -->
+                <svg class="icon icon-sm text-gray-600" viewBox="0 0 24 24">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span class="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+            </div>
+        </header>
+
+        <!-- 
+            [ROUTING AREA]
+            This is where React Router <Outlet /> or conditional rendering switch statement goes.
+        -->
+        <div id="content-area" class="flex-1 overflow-y-auto no-scrollbar bg-gray-50 pb-24 md:pb-10 p-4 md:p-8">
+
+            <!-- 
+                [PAGE: Dashboard.jsx]
+                Features:
+                1. Stats Grid (3 cards)
+                2. Hero Action (New Application)
+                3. Recent Activity List
+            -->
+            <main id="screen-dashboard" class="max-w-6xl mx-auto fade-in block">
+
+                <!-- [COMPONENT: StatsGrid.jsx] -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Stat Card 1 -->
+                    <div
+                        class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-1">Pending</div>
+                            <div class="text-3xl font-bold text-dark">12</div>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center">
+                            <!-- Icon: Clock -->
+                            <svg class="icon text-gray-400" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                    <!-- Stat Card 2 -->
+                    <div
+                        class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-1">Approved
+                            </div>
+                            <div class="text-3xl font-bold text-green-600">45</div>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center">
+                            <!-- Icon: CheckPolyline -->
+                            <svg class="icon text-green-600" viewBox="0 0 24 24">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                    <!-- Stat Card 3 -->
+                    <div
+                        class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <div class="text-[11px] text-gray-400 font-bold uppercase tracking-wider mb-1">Rejected
+                            </div>
+                            <div class="text-3xl font-bold text-red-500">3</div>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                            <!-- Icon: XCircle -->
+                            <svg class="icon text-red-500" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+                    <!-- [COMPONENT: ActionCard.jsx] -->
+                    <div class="md:col-span-1">
+                        <div class="bg-dark rounded-3xl p-8 shadow-xl relative overflow-hidden group cursor-pointer h-full min-h-[250px] flex flex-col justify-center"
+                            onclick="goToUpload()">
+                            <div class="relative z-10">
+                                <div
+                                    class="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center mb-6 group-hover:bg-brand group-hover:text-black transition-colors duration-300">
+                                    <svg class="icon icon-lg text-white group-hover:text-black" viewBox="0 0 24 24">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                </div>
+                                <h2 class="text-white font-bold text-2xl mb-2">New Application</h2>
+                                <p class="text-gray-400 text-sm leading-relaxed">Upload 6 months of statements to
+                                    perform instant risk analysis.</p>
+                            </div>
+                            <div
+                                class="absolute -right-10 -bottom-10 w-56 h-56 bg-brand rounded-full opacity-10 group-hover:opacity-20 transition-all duration-500 transform group-hover:scale-110">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- [COMPONENT: RecentActivity.jsx] Should fetch from backend -->
+                    <div class="md:col-span-2">
+                        <div class="flex justify-between items-end mb-4">
+                            <h3 class="font-bold text-lg text-dark">Recent Activity</h3>
+                            <button class="text-xs text-brand font-semibold hover:underline">View All</button>
+                        </div>
+
+                        <div class="space-y-3">
+                            <!-- Activity Item 1 -->
+                            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:border-brand cursor-pointer transition-colors"
+                                onclick="simulateResults()">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
+                                        TS</div>
+                                    <div>
+                                        <div class="font-bold text-sm text-dark">Tech Solutions Sdn Bhd</div>
+                                        <div class="text-xs text-gray-400 font-mono">APP-4922</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div
+                                        class="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-100">
+                                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                        Low Risk
+                                    </div>
+                                    <div class="text-[10px] text-gray-400 mt-1">2m ago</div>
+                                </div>
+                            </div>
+                            <!-- Activity Item 2 -->
+                            <div
+                                class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-sm">
+                                        KR</div>
+                                    <div>
+                                        <div class="font-bold text-sm text-dark">Kedai Runcit Ali</div>
+                                        <div class="text-xs text-gray-400 font-mono">APP-4921</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div
+                                        class="inline-flex items-center gap-1 text-xs font-bold text-yellow-700 bg-yellow-50 px-2.5 py-1 rounded-full border border-yellow-100">
+                                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                        </svg>
+                                        Review
+                                    </div>
+                                    <div class="text-[10px] text-gray-400 mt-1">1h ago</div>
+                                </div>
+                            </div>
+                            <!-- Activity Item 3 -->
+                            <div
+                                class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-bold text-sm">
+                                        MM</div>
+                                    <div>
+                                        <div class="font-bold text-sm text-dark">Mega Motors</div>
+                                        <div class="text-xs text-gray-400 font-mono">APP-4918</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div
+                                        class="inline-flex items-center gap-1 text-xs font-bold text-red-700 bg-red-50 px-2.5 py-1 rounded-full border border-red-100">
+                                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                                        </svg>
+                                        High Risk
+                                    </div>
+                                    <div class="text-[10px] text-gray-400 mt-1">Yesterday</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- 
+                [PAGE: Upload.jsx]
+                Features:
+                1. Drag and Drop zone
+                2. Multi-file selection
+                3. Calls API POST /api/upload
+            -->
+            <main id="screen-upload" class="hidden h-full flex flex-col fade-in max-w-3xl mx-auto">
+                <div class="mb-8 text-center md:text-left">
+                    <button onclick="goBack('screen-dashboard')"
+                        class="text-sm font-medium text-gray-500 mb-4 flex items-center gap-2 hover:text-dark transition">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        Back to Dashboard
+                    </button>
+                    <h1 class="text-3xl font-bold text-dark mb-2">Upload Documents</h1>
+                    <p class="text-gray-500">We need 6 months of bank statements (PDF) to perform a full risk analysis.
+                    </p>
+                </div>
+
+                <div class="flex-1 flex flex-col justify-center">
+                    <!-- Dropzone -->
+                    <div id="dropzone"
+                        class="border-2 border-dashed border-gray-300 rounded-3xl p-12 text-center bg-white hover:border-brand hover:bg-yellow-50/10 transition-all cursor-pointer group"
+                        onclick="simulateProcessing()">
+                        <div
+                            class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-brand group-hover:text-white transition-colors">
+                            <svg class="icon icon-lg text-gray-400 group-hover:text-black" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <h3 class="font-bold text-xl text-dark mb-2">Click to Upload Files</h3>
+                        <p class="text-sm text-gray-400">Supports PDF batch upload (Max 10MB per file).</p>
+                    </div>
+
+                    <!-- File List Stub -->
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 opacity-60">
+                            <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center text-red-500">
+                                <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded w-full"></div>
+                        </div>
+                        <div class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 opacity-40">
+                            <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center text-red-500">
+                                <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded w-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- 
+                [PAGE: Processing.jsx]
+                Features:
+                1. Animated spinner
+                2. Progress steps (State: steps = [{id: 1, label: 'OCR', status: 'done'}...])
+            -->
+            <main id="screen-processing"
+                class="hidden h-full flex flex-col justify-center items-center text-center bg-white/90 backdrop-blur-sm absolute inset-0 z-50">
+                <div class="relative w-24 h-24 mb-8">
+                    <div class="absolute inset-0 border-[6px] border-gray-100 rounded-full"></div>
+                    <div
+                        class="absolute inset-0 border-[6px] border-brand rounded-full border-t-transparent animate-spin">
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center font-bold text-sm">AI</div>
+                </div>
+
+                <h2 class="text-2xl font-bold text-dark mb-2">Analyzing Data</h2>
+                <div class="h-6 overflow-hidden relative w-full max-w-xs mb-8">
+                    <p id="proc-text"
+                        class="text-sm text-gray-500 transition-all duration-300 absolute w-full text-center top-0">
+                        Initializing LlamaParse...</p>
+                </div>
+
+                <div class="text-left space-y-3 w-full max-w-[280px]">
+                    <div class="flex items-center gap-3 text-sm text-green-600 transition-all duration-500 opacity-0 transform translate-y-2"
+                        id="step-1">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg> OCR Extraction (Azure Doc Intel)
+                    </div>
+                    <div class="flex items-center gap-3 text-sm text-green-600 transition-all duration-500 delay-75 opacity-0 transform translate-y-2"
+                        id="step-2">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg> Merging 6 Months Data
+                    </div>
+                    <div class="flex items-center gap-3 text-sm text-green-600 transition-all duration-500 delay-150 opacity-0 transform translate-y-2"
+                        id="step-3">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg> Running Risk Guardrails
+                    </div>
+                </div>
+            </main>
+
+            <!-- 
+                [PAGE: Results.jsx]
+                Features:
+                1. Score Card with visual Gauge
+                2. AI Assessment List (from LLM response)
+                3. Chart (Recharts AreaChart)
+            -->
+            <main id="screen-results" class="hidden slide-up pb-32 max-w-6xl mx-auto">
+                <div class="flex justify-between items-start mb-8">
+                    <div>
+                        <h1 class="text-3xl font-bold text-dark">MegaMart Sdn Bhd</h1>
+                        <p class="text-sm text-gray-500 mt-1 font-mono flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-gray-400"></span> SSM: 202301004567
+                            <span class="w-2 h-2 rounded-full bg-gray-400"></span> Retail
+                        </p>
+                    </div>
+                    <button onclick="goBack('screen-dashboard')"
+                        class="flex items-center gap-2 text-sm font-bold bg-white border border-gray-200 px-4 py-2 rounded-full hover:bg-gray-50 transition">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        Close Analysis
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                    <!-- Left Column: Score & Insights -->
+                    <div class="lg:col-span-1 space-y-6">
+                        <!-- Score Card Component -->
+                        <div class="bg-dark text-white rounded-3xl p-8 shadow-lg relative overflow-hidden">
+                            <div class="flex justify-between items-center relative z-10">
+                                <div>
+                                    <div class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Overall
+                                        Risk Score</div>
+                                    <div class="text-5xl font-bold text-brand">88<span
+                                            class="text-xl text-white font-normal text-gray-400">/100</span></div>
+                                    <div class="text-green-400 text-sm font-bold mt-3 flex items-center gap-2">
+                                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                        </svg>
+                                        Low Risk Profile
+                                    </div>
+                                </div>
+                                <!-- Visual Gauge: Replace with SVGGauge or simple CSS circle -->
+                                <div
+                                    class="w-24 h-24 rounded-full border-[6px] border-gray-700 flex items-center justify-center relative">
+                                    <div
+                                        class="absolute inset-0 rounded-full border-[6px] border-brand border-l-transparent border-b-transparent rotate-[-45deg]">
+                                    </div>
+                                    <span class="text-3xl font-bold">A</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Insights Component -->
+                        <div>
+                            <h3 class="font-bold text-dark mb-4 text-sm flex items-center gap-2">
+                                <svg class="icon icon-sm text-brand" viewBox="0 0 24 24">
+                                    <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+                                    <path d="M12 2a10 10 0 0 1 10 10h-10V2z"></path>
+                                    <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                                </svg>
+                                AI Assessment
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="bg-green-50 border border-green-100 p-4 rounded-xl flex items-start gap-3">
+                                    <div
+                                        class="mt-0.5 w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0">
+                                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-bold text-green-800">Stable Revenue Growth</div>
+                                        <div class="text-xs text-green-700 mt-1 leading-relaxed">Consistent +12% MoM
+                                            growth observed over 6 months based on inflow analysis.</div>
+                                    </div>
+                                </div>
+                                <div
+                                    class="bg-yellow-50 border border-yellow-100 p-4 rounded-xl flex items-start gap-3">
+                                    <div
+                                        class="mt-0.5 w-6 h-6 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center shrink-0">
+                                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-bold text-yellow-800">Supplier Dependency</div>
+                                        <div class="text-xs text-yellow-700 mt-1 leading-relaxed">40% of outflow goes to
+                                            a single entity ("Nestle"). Risk of supply chain disruption.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Graphs -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 h-full flex flex-col">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="font-bold text-dark text-sm">Cash Flow Analysis (6 Months)</h3>
+                                <div class="flex gap-2">
+                                    <span class="flex items-center gap-1 text-[10px] text-gray-500"><span
+                                            class="w-2 h-2 rounded-full bg-green-500"></span> Inflow</span>
+                                    <span class="flex items-center gap-1 text-[10px] text-gray-500"><span
+                                            class="w-2 h-2 rounded-full bg-red-500"></span> Outflow</span>
+                                </div>
+                            </div>
+                            <div class="flex-1 relative min-h-[300px]">
+                                <!-- [CHART NOTE] Use <ResponsiveContainer><AreaChart .../></ResponsiveContainer> from Recharts -->
+                                <canvas id="cashflowChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Floating Chat Button (Contextual) -->
+                <div class="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-50">
+                    <button onclick="goToChat()"
+                        class="flex items-center gap-3 bg-black text-white pl-5 pr-2 py-2 rounded-full shadow-2xl hover:scale-105 transition-transform group">
+                        <span class="text-sm font-bold">Ask AI Copilot</span>
+                        <div class="w-10 h-10 rounded-full bg-brand text-black flex items-center justify-center">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </div>
+                    </button>
+                </div>
+            </main>
+
+            <!-- 
+                [COMPONENT: ChatOverlay.jsx]
+                Features:
+                1. Scrollable message history
+                2. Sticky input at bottom
+                3. Mobile: Fullscreen / Desktop: Sidebar Drawer
+            -->
+            <main id="screen-chat"
+                class="hidden h-full flex flex-col bg-white absolute top-0 right-0 w-full md:max-w-md shadow-2xl z-50 border-l border-gray-100 slide-up">
+                <header class="p-4 border-b flex justify-between items-center bg-white sticky top-0">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-brand flex items-center justify-center">
+                            <svg class="icon text-black" viewBox="0 0 24 24">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-sm">SME Copilot</h2>
+                            <div class="text-[10px] text-green-500 flex items-center gap-1 font-medium">
+                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Azure OpenAI
+                                Online
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="goBack('screen-results')" class="p-2 hover:bg-gray-100 rounded-full transition">
+                        <svg class="icon text-gray-500" viewBox="0 0 24 24">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </header>
+
+                <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-6 bg-gray-50">
+                    <div class="text-center text-[10px] text-gray-400 font-medium">Today, 10:23 AM</div>
+
+                    <!-- Bot Msg Component -->
+                    <div class="flex gap-4">
+                        <div
+                            class="w-8 h-8 rounded-full bg-brand flex items-center justify-center font-bold text-xs shrink-0 border border-brand/50">
+                            AI</div>
+                        <div
+                            class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm text-sm text-gray-700 border border-gray-100 max-w-[85%] leading-relaxed">
+                            I've analyzed the MegaMart statements. You can ask me about:
+                            <ul class="mt-2 space-y-1 list-disc list-inside text-gray-500 text-xs">
+                                <li>Specific large transactions</li>
+                                <li>Recurring debts & loans</li>
+                                <li>Operational cost breakdown</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white border-t">
+                    <div
+                        class="flex gap-2 items-center bg-gray-100 rounded-full px-4 py-2 border border-transparent focus-within:border-brand transition-colors">
+                        <input type="text" id="chat-input" placeholder="Ask a question..."
+                            class="bg-transparent flex-1 text-sm outline-none text-dark placeholder-gray-400 h-10">
+                        <button onclick="sendChat()"
+                            class="w-10 h-10 bg-black rounded-full text-white flex items-center justify-center shadow-lg hover:bg-gray-800 transition-colors">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    <!-- 
+        [COMPONENT: MobileNav.jsx]
+        Visibility: Visible on mobile (md:hidden), hidden on desktop.
+        Position: Fixed bottom.
+    -->
+    <nav
+        class="md:hidden bg-white border-t border-gray-100 px-6 py-3 flex justify-between items-center fixed bottom-0 w-full pb-6 z-40 shadow-[0_-5px_20px_rgba(0,0,0,0.03)]">
+        <button onclick="goBack('screen-dashboard')" class="flex flex-col items-center gap-1 text-brand">
+            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span class="text-[10px] font-bold">Home</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-gray-300">
+            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span class="text-[10px] font-medium">Files</span>
+        </button>
+        <!-- Floating Action Button placeholder space -->
+        <div class="w-14"></div>
+        <div class="absolute left-1/2 -translate-x-1/2 -top-6">
+            <button onclick="goToChat()"
+                class="w-14 h-14 rounded-full bg-black text-white shadow-xl flex items-center justify-center border-4 border-gray-50 transition-transform hover:scale-105 active:scale-95">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <button class="flex flex-col items-center gap-1 text-gray-300">
+            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <span class="text-[10px] font-medium">Stats</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-gray-300">
+            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span class="text-[10px] font-medium">Profile</span>
+        </button>
+    </nav>
+
+    <!-- 
+    [LOGIC EXTRACTION]
+    The script below contains state logic that should move to specific hooks or context.
+-->
+    <script>
+        // [STATE] activeScreen
+        function switchScreen(id) {
+            document.querySelectorAll('main').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(id);
+            target.classList.remove('hidden');
+
+            const titles = {
+                'screen-dashboard': 'Dashboard',
+                'screen-upload': 'New Application',
+                'screen-results': 'Risk Analysis',
+                'screen-chat': 'Copilot Chat'
+            };
+            document.getElementById('page-title').innerText = titles[id] || 'Maybank Copilot';
+        }
+
+        // [ROUTING]
+        function goToUpload() { switchScreen('screen-upload'); }
+        function goBack(id) {
+            const chatOverlay = document.getElementById('screen-chat');
+            if (!chatOverlay.classList.contains('hidden') && window.innerWidth >= 768) {
+                chatOverlay.classList.add('hidden');
+                return;
+            }
+            switchScreen(id);
+        }
+
+        // [HOOK: useAnalysis]
+        function simulateProcessing() {
+            switchScreen('screen-processing');
+            // This setTimeout logic represents API polling
+            setTimeout(() => {
+                // State Update: Step 1 complete
+            }, 1000);
+        }
+
+        // [HOOK: useChat]
+        function sendChat() {
+            // Appends to message history array
+        }
+    </script>
+
+</body>
+
+</html>
