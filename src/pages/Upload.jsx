@@ -5,9 +5,20 @@ import { motion } from 'framer-motion';
 
 const Upload = () => {
     const navigate = useNavigate();
+    const fileInputRef = React.useRef(null);
 
-    const handleUpload = () => {
-        navigate('/processing');
+    const handleUploadClick = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+            // Pass files to the next page
+            navigate('/processing', { state: { files } });
+        }
     };
 
     return (
@@ -29,11 +40,21 @@ const Upload = () => {
             </div>
 
             <div className="flex-1 flex flex-col justify-center">
+                {/* Hidden File Input */}
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                    accept="application/pdf"
+                    multiple
+                />
+
                 {/* Dropzone */}
                 <div
                     id="dropzone"
                     className="border-2 border-dashed border-gray-300 rounded-3xl p-12 text-center bg-white hover:border-brand hover:bg-yellow-50/10 transition-all cursor-pointer group"
-                    onClick={handleUpload}
+                    onClick={handleUploadClick}
                 >
                     <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-brand group-hover:text-white transition-colors">
                         <UploadIcon className="text-gray-400 group-hover:text-black" size={32} />

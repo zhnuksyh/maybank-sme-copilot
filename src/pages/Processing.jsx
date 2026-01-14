@@ -1,13 +1,21 @@
 import React, { useEffect } from 'react';
 import { useAnalysis } from '../hooks/useAnalysis';
+import { useLocation } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Processing = () => {
-    const { status, steps, startAnalysis } = useAnalysis();
+    const { status, steps, startAnalysis, error } = useAnalysis();
+    const location = useLocation();
 
     useEffect(() => {
-        startAnalysis();
+        const files = location.state?.files;
+        if (files) {
+            startAnalysis(files);
+        } else {
+            console.error("No files found");
+            // Handle error or redirect back
+        }
     }, []);
 
     return (
