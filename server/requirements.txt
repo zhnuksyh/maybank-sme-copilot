@@ -4,3 +4,4 @@ python-dotenv
 llama-parse
 pandas
 python-multipart
+pypdf

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Check, AlertCircle, TrendingUp, MessageSquare, Bot } from 'lucide-react';
+import { X, Check, AlertCircle, TrendingUp, MessageSquare, Bot, ShieldAlert } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { motion } from 'framer-motion';
 import ChatOverlay from '../components/ui/ChatOverlay';
@@ -77,6 +77,26 @@ const Results = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Fraud Detection Alert - CRITICAL */}
+                    {apiData?.fraud_warnings && apiData.fraud_warnings.length > 0 && (
+                        <div className="bg-red-900 text-white rounded-3xl p-6 mb-6 animate-pulse shadow-xl border-2 border-red-500">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2 bg-red-800 rounded-lg text-white">
+                                    <ShieldAlert size={24} />
+                                </div>
+                                <h3 className="text-lg font-bold">POTENTIAL FORGERY DETECTED</h3>
+                            </div>
+                            <div className="text-sm text-red-100 mb-2 font-semibold">
+                                Metadata forensics indicate this document may have been altered or created using non-banking tools:
+                            </div>
+                            <ul className="list-disc list-inside text-sm text-red-200 space-y-1 ml-2">
+                                {apiData.fraud_warnings.map((warning, i) => (
+                                    <li key={i}>{warning}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
 
                     {/* Red Flags Alert */}
                     {apiData?.red_flags && apiData.red_flags.length > 0 && (

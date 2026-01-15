@@ -7,6 +7,7 @@ from typing import List, Dict, Any
 from fastapi import UploadFile
 from llama_parse import LlamaParse
 from datetime import datetime
+from pypdf import PdfReader
 
 # Initialize LlamaParse
 parser = LlamaParse(
@@ -21,6 +22,7 @@ async def process_pdfs(files: List[UploadFile]) -> Dict[str, Any]:
     # Metadata extraction
     detected_name = "Unknown Company"
     name_found = False
+    fraud_warnings = []
 
     for file in files:
         suffix = os.path.splitext(file.filename)[1]
@@ -29,8 +31,15 @@ async def process_pdfs(files: List[UploadFile]) -> Dict[str, Any]:
             tmp.write(content)
             tmp_path = tmp.name
 
+            tmp_path = tmp.name
+
         try:
-            # Step 1: OCR
+            # Step 1: Forensics (Metadata Check)
+            metadata_alerts = check_metadata(tmp_path)
+            if metadata_alerts:
+                fraud_warnings.extend(metadata_alerts)
+
+            # Step 2: OCR
             documents = await parser.aload_data(tmp_path)
             
             for doc in documents:
@@ -85,8 +94,46 @@ async def process_pdfs(files: List[UploadFile]) -> Dict[str, Any]:
         "insights": monthly_summary['insights'],
         "top_payers": monthly_summary.get('top_payers', []),
         "red_flags": monthly_summary.get('red_flags', []),
+        "fraud_warnings": list(set(fraud_warnings)),
         "raw_markdown": full_raw_markdown.strip()
     }
+
+def check_metadata(file_path: str) -> List[str]:
+    """
+    Scans PDF metadata for known editing tools.
+    """
+    alerts = []
+    try:
+        reader = PdfReader(file_path)
+        meta = reader.metadata
+        if not meta:
+            return []
+            
+        producer = meta.get('/Producer', '')
+        creator = meta.get('/Creator', '')
+        
+        # Suspect Keywords
+        suspicious_kv = {
+            'Canva': 'Document created with Canva (Design Tool).',
+            'Photoshop': 'Document created with Photoshop (Image Editor).',
+            'GIMP': 'Document created with GIMP (Image Editor).',
+            'Microsoft Word': 'Document created with Microsoft Word (Editable Source).',
+            'LibreOffice': 'Document created with LibreOffice (Editable Source).',
+            'RadPDF': 'Document created with RadPDF (Online Editor).',
+            'iLovePDF': 'Document processed by iLovePDF (Online Tool).',
+            'SmallPDF': 'Document processed by SmallPDF (Online Tool).'
+        }
+        
+        combined = (producer + " " + creator).lower()
+        
+        for key, warning in suspicious_kv.items():
+            if key.lower() in combined:
+                alerts.append(warning)
+                
+    except Exception as e:
+        print(f"Metadata check failed: {e}")
+        
+    return alerts
 
 def extract_entity_name(text: str) -> str:
     """
