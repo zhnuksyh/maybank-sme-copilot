@@ -7,8 +7,12 @@ import { motion } from 'framer-motion';
 const Processing = () => {
     const { status, steps, startAnalysis, error } = useAnalysis();
     const location = useLocation();
+    const hasStarted = React.useRef(false);
 
     useEffect(() => {
+        if (hasStarted.current) return;
+        hasStarted.current = true;
+
         const files = location.state?.files;
         if (files) {
             startAnalysis(files);

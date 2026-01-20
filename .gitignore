@@ -35,3 +35,4 @@ server/.env
 server/venv/
 server/__pycache__/
 *.pdf
+*.db

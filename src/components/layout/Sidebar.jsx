@@ -5,7 +5,8 @@ import {
     FileText,
     BarChart2,
     User,
-    LogOut
+    LogOut,
+    Clock
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -33,6 +34,14 @@ const Sidebar = () => {
                 >
                     <LayoutDashboard size={24} />
                     Dashboard
+                </button>
+                <button
+                    onClick={() => navigate('/history')}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${isActive('/history') ? 'bg-gray-50 text-brand' : 'text-gray-500 hover:bg-gray-50'
+                        }`}
+                >
+                    <Clock size={24} />
+                    History
                 </button>
                 <button
                     className="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium transition-colors"

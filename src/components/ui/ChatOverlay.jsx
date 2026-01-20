@@ -1,33 +1,55 @@
 import React, { useState } from 'react';
 import { Bot, X, Send, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const ChatOverlay = ({ isOpen, onClose }) => {
+    const [isTyping, setIsTyping] = useState(false);
     const [input, setInput] = useState('');
     const [messages, setMessages] = useState([
         {
             id: 1,
             type: 'bot',
-            text: "I've analyzed the MegaMart statements. You can ask me about:",
+            text: "I've analyzed the latest statements. You can ask me about:",
             list: ["Specific large transactions", "Recurring debts & loans", "Operational cost breakdown"]
         }
     ]);
 
-    const handleSend = () => {
-        if (!input.trim()) return;
+    const handleSend = async () => {
+        if (!input.trim() || isTyping) return;
 
-        setMessages(prev => [...prev, { id: Date.now(), type: 'user', text: input }]);
-        const userQuestion = input;
+        const userText = input;
+        setMessages(prev => [...prev, { id: Date.now(), type: 'user', text: userText }]);
         setInput('');
+        setIsTyping(true);
 
-        // Simulate AI response
-        setTimeout(() => {
+        try {
+            const res = await fetch('http://localhost:8001/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: userText })
+            });
+
+            if (!res.ok) throw new Error("Failed to get response");
+
+            const data = await res.json();
+
             setMessages(prev => [...prev, {
                 id: Date.now() + 1,
                 type: 'bot',
-                text: `I'm analyzing "${userQuestion}"... Here is a summary based on the uploaded statements.`
+                text: data.response
             }]);
-        }, 1000);
+        } catch (error) {
+            console.error(error);
+            setMessages(prev => [...prev, {
+                id: Date.now() + 1,
+                type: 'bot',
+                text: "Sorry, I'm having trouble connecting to the brain right now. Please check if the server is running."
+            }]);
+        } finally {
+            setIsTyping(false);
+        }
     };
 
     return (
@@ -67,7 +89,23 @@ const ChatOverlay = ({ isOpen, onClose }) => {
                                     {msg.type === 'user' ? 'U' : 'AI'}
                                 </div>
                                 <div className={`p-4 rounded-2xl shadow-sm text-sm border max-w-[85%] leading-relaxed ${msg.type === 'user' ? 'bg-black text-white rounded-tr-none border-black' : 'bg-white text-gray-700 rounded-tl-none border-gray-100'}`}>
-                                    {msg.text}
+                                    <div className="markdown-content">
+                                        <ReactMarkdown
+                                            remarkPlugins={[remarkGfm]}
+                                            components={{
+                                                ul: ({ node, ...props }) => <ul className="list-disc list-inside space-y-1 mb-2" {...props} />,
+                                                ol: ({ node, ...props }) => <ol className="list-decimal list-inside space-y-1 mb-2" {...props} />,
+                                                li: ({ node, ...props }) => <li className="ml-2" {...props} />,
+                                                p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                                                strong: ({ node, ...props }) => <span className="font-bold text-gray-900" {...props} />,
+                                                table: ({ node, ...props }) => <div className="overflow-x-auto my-2"><table className="min-w-full text-xs border border-gray-200" {...props} /></div>,
+                                                th: ({ node, ...props }) => <th className="bg-gray-100 p-1 border font-semibold" {...props} />,
+                                                td: ({ node, ...props }) => <td className="p-1 border" {...props} />,
+                                            }}
+                                        >
+                                            {msg.text}
+                                        </ReactMarkdown>
+                                    </div>
                                     {msg.list && (
                                         <ul className="mt-2 space-y-1 list-disc list-inside opacity-80 text-xs">
                                             {msg.list.map((item, i) => <li key={i}>{item}</li>)}
@@ -76,6 +114,18 @@ const ChatOverlay = ({ isOpen, onClose }) => {
                                 </div>
                             </div>
                         ))}
+                        {isTyping && (
+                            <div className="flex gap-4">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 border bg-brand border-brand/50">
+                                    AI
+                                </div>
+                                <div className="p-4 rounded-2xl shadow-sm text-sm border max-w-[85%] bg-white text-gray-700 rounded-tl-none border-gray-100 flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="p-4 bg-white border-t">

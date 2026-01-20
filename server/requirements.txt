@@ -5,3 +5,5 @@ llama-parse
 pandas
 python-multipart
 pypdf
+sqlalchemy
+google-generativeai
