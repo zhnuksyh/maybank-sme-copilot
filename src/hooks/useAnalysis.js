@@ -41,7 +41,7 @@ export const useAnalysis = () => {
             // To make it look "alive", we can simulate step completion if it takes time, 
             // or just move to "done" when we get the response.
 
-            const response = await fetch('http://localhost:8001/api/upload', {
+            const response = await fetch('http://localhost:8000/api/upload', {
                 method: 'POST',
                 body: formData,
             });

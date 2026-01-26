@@ -14,7 +14,7 @@ const History = () => {
 
     const fetchHistory = async () => {
         try {
-            const res = await fetch('http://localhost:8001/api/history');
+            const res = await fetch('http://localhost:8000/api/history');
             const data = await res.json();
             setHistory(data);
         } catch (error) {
@@ -27,7 +27,7 @@ const History = () => {
     const handleViewReport = async (id) => {
         try {
             // Fetch full details
-            const res = await fetch(`http://localhost:8001/api/analysis/${id}`);
+            const res = await fetch(`http://localhost:8000/api/analysis/${id}`);
             const data = await res.json();
             // Navigate to results with state
             navigate('/results', { state: { result: data } });
@@ -42,7 +42,7 @@ const History = () => {
         if (!confirm("Are you sure you want to delete this report?")) return;
 
         try {
-            await fetch(`http://localhost:8001/api/analysis/${id}`, { method: 'DELETE' });
+            await fetch(`http://localhost:8000/api/analysis/${id}`, { method: 'DELETE' });
             fetchHistory(); // Refresh
         } catch (error) {
             console.error("Delete failed", error);
